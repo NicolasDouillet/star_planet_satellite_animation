@@ -7,82 +7,97 @@ function[] = star_planet_satellite_animation()
 
 
 % Computational parameters
-sz = 51; % grid size (odd number >= 3)
-xy_centre = 0.5*(sz-1); % grid centre position
+sz = 51; % size of the space grid, odd number >= 3; default : 51
+xy_centre = 1 + floor(0.5*sz); % position of the grid centre; default : 1 + floor(0.5*sz)
 
 % Star position
-xs = 0;
-ys = 0;
+xs = 0; % default : 0
+ys = 0; % default : 0
 
 % Planet initial position
-xp = floor(0.225*(sz-1));
-yp = floor(0.225*(sz-1));
+xp = floor(0.225*(sz-1)); % default : floor(0.225*(sz-1))
+yp = floor(0.225*(sz-1)); % default : floor(0.225*(sz-1));
 
-sat_dst = 3*sqrt(2); % satellite distance to planet
-
-resolution = 60; % nb angle steps over one loop
-Phi_step = pi/resolution; % angular step
+resolution = 60; % nb angle steps over one loop; default : 60
+Phi_step = pi/resolution; % rotation angle step
 m = 0:Phi_step:2*pi-Phi_step;
 
-sat_year_period_nb = 5; % satellite number of revolution during one year of the planet
+sat_year_period_nb = 5; % satellite number of revolutions during one year of the planet; default : 5
 
-% Ellipse semi major and minor axes values
-a = 1;
-b = 1;
+% Planet elliptic path semi major and minor axes
+a = 1; % default : 1
+b = 1; % default : 1
+
 planet_path = cat(1,a*cos(m)*xp-b*sin(m)*yp,...
                     a*sin(m)*xp+b*cos(m)*yp);
+                
+rp = sqrt(sum(planet_path.^2,1)); % planet_orbit_radius
+sat_dst = 0.25*mean(rp); % satellite (relative) distance to planet; default : 0.25*mean(rp)
 
 sat_orb = cat(1,cos((1-sat_year_period_nb)*m)*sat_dst - sin((1-sat_year_period_nb)*m)*sat_dst,...
                 sin((1-sat_year_period_nb)*m)*sat_dst + cos((1-sat_year_period_nb)*m)*sat_dst);
           
 sat_path = planet_path + sat_orb;
 
+% Star & planet size and gravity function radius
+star_weight = 15; % default : 15
+star_radius_function = floor(0.45*(sz-1)); % default : floor(0.45*(sz-1)) 
+planet_weight = 11; % default : 11; alternative : 2
+planet_radius_function = floor(0.45*(sz-1)); % default : floor(0.45*(sz-1)); alternative : 6.5 
+
+
 % Display parameters
-time_lapse = 0.1;
+time_lapse = 0.1; % default : 0.1
 title_text = 'Star - planet - satellite system gravitational fields and orbitography modelling';
 title_on = true;
 filename = 'star_planet_satellite_system.gif';
-az = -22;
-el = 80;
+az = -22; % default : -22
+el = 80;  % default :  80
 
 % Display settings
 h = figure;
 set(h,'Position',get(0,'ScreenSize'));
 set(gcf,'Color',[0 0 0]);
 axis tight manual;
-planet_path_on = true;
-sat_path_on = true;
+planet_path_on = true; % default : true
+sat_path_on = true;    % default : true
+cmap = 'hot';          % default : 'hot'
+
+% Static star space shape 
+Z_star = compute_space_shape(sz,xs,ys,-star_weight,star_radius_function);
 
 
-for s = 1:length(m)
+for s = 1:numel(m)
     
-    Phi_star = CS_RBF(sz,xs,ys,-15,floor(0.45*(sz-1)));
-    Phi_planet = CS_RBF(sz,planet_path(1,s),planet_path(2,s),-2,6.5);
-    Phi = Phi_star + Phi_planet;
+    Z_planet = compute_space_shape(sz,planet_path(1,s),planet_path(2,s),-planet_weight,planet_radius_function);
+    Z = Z_star + Z_planet;
     
-    mesh(Phi), hold on;
-    colormap([0 1 1]);
-    alpha 0;
+    mesh(Z), hold on;
+    colormap(cmap);
+    alpha 0;        
     
-    if planet_path_on
-        plot3(xy_centre+cat(2,planet_path(1,:),planet_path(1,1)),xy_centre+cat(2,planet_path(2,:),planet_path(2,1)),zeros(1,length(m)+1),'Color',[1 0 1],'Linewidth',2), hold on;
-    end
-    
-    % Star
+    % --- Star --- %
     plot3(xy_centre,xy_centre,0,'o','Color',[1 1 0],'Linewidth',40), hold on;
     
-    % Planet
-    plot3(xy_centre+planet_path(1,s),xy_centre+planet_path(2,s),0,'o','Color',[1 0 1],'Linewidth',15), hold on;
+    % --- Planet --- %
+    zp = griddata(1:sz,1:sz,Z,xy_centre+planet_path(1,:),xy_centre+planet_path(2,:));            
     
-    % Satellite
-    zs = griddata(1:sz,1:sz,Phi,xy_centre+sat_path(1,:),xy_centre+sat_path(2,:));
+    if planet_path_on        
+        plot3(xy_centre+cat(2,planet_path(1,:),planet_path(1,1)),xy_centre+cat(2,planet_path(2,:),planet_path(2,1)),cat(2,zp(1,:),zp(1,1)),'Color',[1 0 1],'Linewidth',2), hold on;
+    end
+    
+    plot3(xy_centre+planet_path(1,s),xy_centre+planet_path(2,s),zp(1,s),'o','Color',[1 0 1],'Linewidth',15), hold on;
+    
+    % --- Satellite --- %
+    zs = griddata(1:sz,1:sz,Z,xy_centre+sat_path(1,:),xy_centre+sat_path(2,:));
     
     if sat_path_on        
         plot3(xy_centre+cat(2,sat_path(1,:),sat_path(1,1)),xy_centre+cat(2,sat_path(2,:),sat_path(2,1)),cat(2,zs(1,:),zs(1,1)),'Color',[0 1 0],'Linewidth',2), hold on;
     end
     
-    plot3(xy_centre+planet_path(1,s)+sat_orb(1,s),xy_centre+planet_path(2,s)+sat_orb(2,s),zs(1,s),'o','Color',[0 1 0],'Linewidth',10), hold on;
+    plot3(xy_centre+planet_path(1,s)+sat_orb(1,s),xy_centre+planet_path(2,s)+sat_orb(2,s),zs(1,s),'o','Color',[0 1 0],'Linewidth',10), hold on;        
     
+    % --- Display settings --- %
     ax = gca;
     ax.Clipping = 'off';
     set(ax,'Color',[0 0 0]);
@@ -95,13 +110,13 @@ for s = 1:length(m)
     
     view(az,el);
     
+    % --- .gif creation --- %
     drawnow;
     
     frame = getframe(h);
     im = frame2im(frame);
     [imind,cm] = rgb2ind(im,256);
-    
-    % Write to the .gif file
+        
     if s == 1
         imwrite(imind,cm,filename,'gif', 'Loopcount',Inf,'DelayTime',time_lapse);
     else
@@ -116,23 +131,21 @@ end
 end % star_planet_satellite_animation
 
 
-function phi = CS_RBF(sz, xc, yc, height, rmax)
-%
-% Author & support nicolas.douillet (at) free.fr, 2007-2020.
+function [z] = compute_space_shape(sz, xc, yc, height, rmax)
 
 
 if ~mod(sz,2) % sz = odd number
     sz = sz+1;
 end
 
-phi = zeros(sz,sz);
+z = zeros(sz);
 scale_min = -1;
 scale_max = 1;
 step = (scale_max-scale_min)/(sz-1);
+
 xc = step*xc;
 yc = step*yc;
 rmax = step*rmax;
-
 
 for i = scale_min:step:scale_max  % loop on the matrix
     
@@ -141,21 +154,23 @@ for i = scale_min:step:scale_max  % loop on the matrix
     for j = scale_min:step:scale_max
         
         v = round((0.5*(sz-1))*j+0.5*(sz-1)+1);
-        r = norm([i-yc;j-xc]);  % radius computation
+        r = norm([i-yc;j-xc]);  % radius
         
-        phi(u,v) = ((1-r)^4).*(4*r+1);
-        
-        if r >= rmax 
+        if r < rmax
             
-           phi(u,v) = 0;
-           
-        end        
+            z(u,v) = ((1-r)^4).*(4*r+1); % radial basis function
+            
+        else % if r >= rmax
+            
+            z(u,v) = 0;
+            
+        end
         
     end
     
 end
 
-phi = height*phi;
+z = height*z;
 
 
-end % CS_RBF
+end % compute_space_shape
