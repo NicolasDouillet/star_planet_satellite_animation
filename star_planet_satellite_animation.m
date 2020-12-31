@@ -18,7 +18,7 @@ ys = 0; % default : 0
 xp = floor(0.225*(sz-1)); % default : floor(0.225*(sz-1))
 yp = floor(0.225*(sz-1)); % default : floor(0.225*(sz-1));
 
-resolution = 120; % nb angle steps over one loop; default : 60
+resolution = 60; % nb angle steps over one loop; default : 60
 Phi_step = pi/resolution; % rotation angle step
 m = 0:Phi_step:2*pi-Phi_step;
 
@@ -43,7 +43,7 @@ sat_path = planet_path + sat_orb;
 % Star & planet size and gravity function radius
 star_weight = 24;   % default : 24
 star_radius_function = 0.45*(sz-1);   % default : 0.45*(sz-1) 
-planet_weight = 3*star_weight/4; % default : 2*star_weight/3
+planet_weight = 3*star_weight/4; % default : 3*star_weight/4
 planet_radius_function = 0.45*(sz-1); % default : 0.45*(sz-1); relative alternative : planet_weight*star_radius_function/star_weight
 
 
