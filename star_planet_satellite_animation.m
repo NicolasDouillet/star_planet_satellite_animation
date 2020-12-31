@@ -18,7 +18,7 @@ ys = 0; % default : 0
 xp = floor(0.225*(sz-1)); % default : floor(0.225*(sz-1))
 yp = floor(0.225*(sz-1)); % default : floor(0.225*(sz-1));
 
-resolution = 60; % nb angle steps over one loop; default : 60
+resolution = 120; % nb angle steps over one loop; default : 60
 Phi_step = pi/resolution; % rotation angle step
 m = 0:Phi_step:2*pi-Phi_step;
 
@@ -39,15 +39,16 @@ sat_orb = cat(1,cos((1-sat_year_period_nb)*m)*sat_dst - sin((1-sat_year_period_n
           
 sat_path = planet_path + sat_orb;
 
+
 % Star & planet size and gravity function radius
-star_weight = 15; % default : 15
-star_radius_function = floor(0.45*(sz-1)); % default : floor(0.45*(sz-1)) 
-planet_weight = 11; % default : 11; alternative : 2
-planet_radius_function = floor(0.45*(sz-1)); % default : floor(0.45*(sz-1)); alternative : 6.5 
+star_weight = 24;   % default : 24
+star_radius_function = 0.45*(sz-1);   % default : 0.45*(sz-1) 
+planet_weight = 3*star_weight/4; % default : 2*star_weight/3
+planet_radius_function = 0.45*(sz-1); % default : 0.45*(sz-1); relative alternative : planet_weight*star_radius_function/star_weight
 
 
 % Display parameters
-time_lapse = 0.1; % default : 0.1
+time_lapse = 6/resolution; % default : 6/resolution
 title_text = 'Star - planet - satellite system gravitational fields and orbitography modelling';
 title_on = true;
 filename = 'star_planet_satellite_system.gif';
@@ -59,12 +60,12 @@ h = figure;
 set(h,'Position',get(0,'ScreenSize'));
 set(gcf,'Color',[0 0 0]);
 axis tight manual;
-planet_path_on = true; % default : true
-sat_path_on = true;    % default : true
-cmap = 'hot';          % default : 'hot'
-star_size = 24;        % default : 28
-planet_size = 12;      % default : 15
-sat_size = 7;          % default : 10
+planet_path_on = true;        % default : true
+sat_path_on = true;           % default : true
+cmap = 'hot';                 % default : 'hot'
+star_size = star_weight;      % default : star_weight
+planet_size = 0.5*star_size;  % default : 0.5*star_size
+sat_size = 0.5*planet_weight; % default : 0.5*planet_weight
 
 % Static star space shape 
 Z_star = compute_space_shape(sz,xs,ys,-star_weight,star_radius_function);
@@ -108,7 +109,7 @@ for s = 1:numel(m)
     axis off;
     
     if title_on
-        title(title_text,'FontSize',16,'Color',[1 1 1]), hold on;
+        title(title_text,'FontSize',20,'Color',[1 1 1]), hold on;
     end
     
     view(az,el);
@@ -137,11 +138,8 @@ end % star_planet_satellite_animation
 function [z] = compute_space_shape(sz, xc, yc, height, rmax)
 
 
-if ~mod(sz,2) % sz = odd number
-    sz = sz+1;
-end
-
 z = zeros(sz);
+
 scale_min = -1;
 scale_max = 1;
 step = (scale_max-scale_min)/(sz-1);
@@ -150,30 +148,14 @@ xc = step*xc;
 yc = step*yc;
 rmax = step*rmax;
 
-for i = scale_min:step:scale_max  % loop on the matrix
-    
-    u = round((0.5*(sz-1))*i+0.5*(sz-1)+1);  % conversion into indices
-    
-    for j = scale_min:step:scale_max
-        
-        v = round((0.5*(sz-1))*j+0.5*(sz-1)+1);
-        r = norm([i-yc;j-xc]);  % radius
-        
-        if r < rmax
-            
-            z(u,v) = ((1-r)^4).*(4*r+1); % radial basis function
-            
-        else % if r >= rmax
-            
-            z(u,v) = 0;
-            
-        end
-        
-    end
-    
-end
+sample_vect = scale_min:step:scale_max;
+[i,j] = meshgrid(sample_vect);
+idx_vect = round((0.5*(sz-1))*sample_vect+0.5*(sz-1)+1);
 
-z = height*z;
+r = sqrt((i-xc).^2+(j-yc).^2);
+z(idx_vect,idx_vect) = height*((1-r).^4).*(4*r+1);
+f = r >= rmax;
+z(f) = 0;
 
 
 end % compute_space_shape
