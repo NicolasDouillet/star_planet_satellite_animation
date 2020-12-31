@@ -62,6 +62,9 @@ axis tight manual;
 planet_path_on = true; % default : true
 sat_path_on = true;    % default : true
 cmap = 'hot';          % default : 'hot'
+star_size = 24;        % default : 28
+planet_size = 12;      % default : 15
+sat_size = 7;          % default : 10
 
 % Static star space shape 
 Z_star = compute_space_shape(sz,xs,ys,-star_weight,star_radius_function);
@@ -77,7 +80,7 @@ for s = 1:numel(m)
     alpha 0;        
     
     % --- Star --- %
-    plot3(xy_centre,xy_centre,0,'o','Color',[1 1 0],'Linewidth',40), hold on;
+    plot3(xy_centre,xy_centre,0,'o','Color',[1 1 0],'Markersize',star_size,'Linewidth',star_size), hold on;
     
     % --- Planet --- %
     zp = griddata(1:sz,1:sz,Z,xy_centre+planet_path(1,:),xy_centre+planet_path(2,:));            
@@ -86,7 +89,7 @@ for s = 1:numel(m)
         plot3(xy_centre+cat(2,planet_path(1,:),planet_path(1,1)),xy_centre+cat(2,planet_path(2,:),planet_path(2,1)),cat(2,zp(1,:),zp(1,1)),'Color',[1 0 1],'Linewidth',2), hold on;
     end
     
-    plot3(xy_centre+planet_path(1,s),xy_centre+planet_path(2,s),zp(1,s),'o','Color',[1 0 1],'Linewidth',15), hold on;
+    plot3(xy_centre+planet_path(1,s),xy_centre+planet_path(2,s),zp(1,s),'o','Color',[1 0 1],'Markersize',planet_size,'Linewidth',planet_size), hold on;
     
     % --- Satellite --- %
     zs = griddata(1:sz,1:sz,Z,xy_centre+sat_path(1,:),xy_centre+sat_path(2,:));
@@ -95,7 +98,7 @@ for s = 1:numel(m)
         plot3(xy_centre+cat(2,sat_path(1,:),sat_path(1,1)),xy_centre+cat(2,sat_path(2,:),sat_path(2,1)),cat(2,zs(1,:),zs(1,1)),'Color',[0 1 0],'Linewidth',2), hold on;
     end
     
-    plot3(xy_centre+planet_path(1,s)+sat_orb(1,s),xy_centre+planet_path(2,s)+sat_orb(2,s),zs(1,s),'o','Color',[0 1 0],'Linewidth',10), hold on;        
+    plot3(xy_centre+planet_path(1,s)+sat_orb(1,s),xy_centre+planet_path(2,s)+sat_orb(2,s),zs(1,s),'o','Color',[0 1 0],'Markersize',sat_size,'Linewidth',sat_size), hold on;        
     
     % --- Display settings --- %
     ax = gca;
