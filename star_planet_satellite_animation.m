@@ -1,13 +1,13 @@
-function[] = star_planet_satellite_animation()
+function [] = star_planet_satellite_animation()
 % star_planet_satellite_animation : function to create an animation
 % to model the orbitography and the gravitational fields of a
 % star - planet - satellite system.
 %
-% Author & support nicolas.douillet (at) free.fr, 2007-2020.
+% Author : nicolas.douillet9 (at) gmail.com, 2007-2024.
 
 
 % Computational parameters
-sz = 51; % size of the space grid, odd number >= 3; default : 51
+sz = 51; % size of the space grid, integer >= 3; default : 51
 xy_centre = 1 + floor(0.5*sz); % position of the grid centre; default : 1 + floor(0.5*sz)
 
 % Star position
@@ -52,8 +52,8 @@ time_lapse = 6/resolution; % default : 6/resolution
 title_text = 'Star - planet - satellite system gravitational fields and orbitography modelling';
 title_on = true;
 filename = 'star_planet_satellite_system.gif';
-az = -22; % default : -22
-el = 80;  % default :  80
+az = -22; % azimutal view angle; default : -22
+el = 80;  % elevation view angle; default : 80
 
 % Display settings
 h = figure;
